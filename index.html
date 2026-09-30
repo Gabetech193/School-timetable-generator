@@ -52,24 +52,24 @@ const defaultState={
   {name:"Mathematics",teacher:"Teacher 1",classes:["Grade 1A","Grade 1B"],lessons:5},
   {name:"English",teacher:"Teacher 2",classes:["Grade 1A","Grade 1B"],lessons:5}
  ],
- timetable:{},view:"setup",selectedClass:"",selectedTeacher:""
+ timetable:{},assignments:[],view:"login",selectedClass:"",selectedTeacher:"",loggedIn:false
 };
 let state=load();
-function load(){try{return Object.assign(structuredClone(defaultState),JSON.parse(localStorage.getItem(KEY))||{})}catch(e){return structuredClone(defaultState)}}
+function load(){try{let saved=JSON.parse(localStorage.getItem(KEY))||{};let x=Object.assign(structuredClone(defaultState),saved);if(!x.assignments||!x.assignments.length){x.assignments=[];(x.subjects||[]).forEach(s=>{(s.classes||[]).forEach(c=>x.assignments.push({subject:s.name,teacher:s.teacher||"",class:c,lessons:s.lessons||1}))})}x.subjects=(x.subjects||[]).map(s=>typeof s==="string"?{name:s}:s);return x}catch(e){return structuredClone(defaultState)}}
 function save(){localStorage.setItem(KEY,JSON.stringify(state))}
 function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 function el(tag,attrs={},html=""){let x=document.createElement(tag);Object.entries(attrs).forEach(([k,v])=>x.setAttribute(k,v));x.innerHTML=html;return x}
-const navItems=[["setup","Setup"],["subjects","Subjects"],["periods","Periods"],["generate","Generate"],["block","Block"],["class","Class"],["teacher","Teacher"]];
-function renderNav(){
- const n=document.getElementById("nav");n.innerHTML="";
- navItems.forEach(([id,label])=>{let b=el("button",{type:"button"},label);if(state.view===id)b.className="active";b.onclick=()=>{state.view=id;render()};n.appendChild(b)})
-}
+const navItems=[["dashboard","Dashboard"],["setup","School Setup"],["subjects","Subjects"],["assignments","Teacher Assignment"],["periods","Periods"],["generate","Generate"],["block","Block"],["class","Class"],["teacher","Teacher"]];
+function renderNav(){const n=document.getElementById("nav");n.innerHTML="";if(!state.loggedIn)return;navItems.forEach(([id,label])=>{let b=el("button",{type:"button"},label);if(state.view===id)b.className="active";b.onclick=()=>{state.view=id;render()};n.appendChild(b)});let out=el("button",{type:"button"},"Logout");out.onclick=()=>{state.loggedIn=false;state.view="login";save();render()};n.appendChild(out)}
 function panel(title,body){return `<section class="panel"><h2>${title}</h2>${body}</section>`}
 function render(){
- renderNav();document.getElementById("title").textContent=state.school.name||"School Timetable Generator";
+ renderNav();document.getElementById("title").textContent=state.loggedIn?(state.school.name||"School Timetable Generator"):"School Timetable Generator";
  const a=document.getElementById("app");
+ if(!state.loggedIn){a.innerHTML=loginView();bind();return}
+ if(state.view==="dashboard")a.innerHTML=dashboardView();
  if(state.view==="setup")a.innerHTML=setupView();
  if(state.view==="subjects")a.innerHTML=subjectsView();
+ if(state.view==="assignments")a.innerHTML=assignmentsView();
  if(state.view==="periods")a.innerHTML=periodsView();
  if(state.view==="generate")a.innerHTML=generateView();
  if(state.view==="block")a.innerHTML=blockView();
@@ -77,6 +77,10 @@ function render(){
  if(state.view==="teacher")a.innerHTML=teacherView();
  bind();
 }
+function loginView(){return `<section class="panel" style="max-width:430px;margin:45px auto"><h2>School Timetable Login</h2><p class="hint">Offline administrator login for this device.</p><label>Username<input id="loginUser" autocomplete="username" value="admin"></label><br><label>Password<input id="loginPass" type="password" autocomplete="current-password" placeholder="Enter password"></label><div class="actions"><button class="primary" id="loginBtn">Login</button></div><div class="notice">First login: <b>admin</b> / <b>admin123</b>. This is a local app login, not an online account.</div><div id="loginMsg" class="hint"></div></section>`}
+function dashboardView(){let lessonCount=Object.keys(state.timetable).length;return panel("Dashboard",`<p>Welcome to <b>${esc(state.school.name||"My School")}</b>.</p><div class="grid">
+<div class="panel"><h2>${state.classes.length}</h2><div>Classes</div></div><div class="panel"><h2>${state.teachers.length}</h2><div>Teachers</div></div><div class="panel"><h2>${state.subjects.length}</h2><div>Subjects</div></div><div class="panel"><h2>${lessonCount}</h2><div>Generated lessons</div></div></div>
+<div class="actions"><button class="primary dash" data-view="setup">School Setup</button><button class="primary dash" data-view="subjects">Add Subjects</button><button class="primary dash" data-view="assignments">Assign Teachers</button><button class="primary dash" data-view="generate">Generate Timetable</button></div>`)}
 function setupView(){
  let classes=state.classes.map((x,i)=>`<div class="item"><span>${esc(x)}</span><button class="danger delClass" data-i="${i}">Delete</button></div>`).join("")||'<div class="empty">No classes yet.</div>';
  let teachers=state.teachers.map((x,i)=>`<div class="item"><span>${esc(x)}</span><button class="danger delTeacher" data-i="${i}">Delete</button></div>`).join("")||'<div class="empty">No teachers yet.</div>';
@@ -88,13 +92,14 @@ function setupView(){
  ${panel("Teachers",`<div id="teacherList">${teachers}</div><div class="grid"><label>New teacher<input id="newTeacher" placeholder="Teacher name"></label></div><div class="actions"><button class="primary" id="addTeacher">Add teacher</button></div>`)}
  `);
 }
-function subjectsView(){return panel("Subjects and weekly lessons",`<p class="hint">Each subject can be assigned to a teacher, selected classes, and a number of lessons per week for each selected class.</p>
-<div class="grid"><label>Subject name<input id="subName" placeholder="e.g. Science"></label>
-<label>Teacher<select id="subTeacher"><option value="">Select teacher</option>${state.teachers.map(t=>`<option>${esc(t)}</option>`).join("")}</select></label>
-<label>Lessons per week<input id="subLessons" type="number" min="1" max="20" value="4"></label></div>
-<label>Classes</label><div class="grid" id="classChecks">${state.classes.map(c=>`<label><input type="checkbox" class="classCheck" value="${esc(c)}"> ${esc(c)}</label>`).join("")}</div>
+function subjectsView(){return panel("Subjects",`<p class="hint">Add your complete list of subjects first. Teachers, classes and weekly lesson requirements are assigned later under <b>Teacher Assignment</b>.</p>
+<div class="grid"><label>Subject name<input id="subName" placeholder="e.g. Mathematics"></label></div>
 <div class="actions"><button class="primary" id="addSubject">Add subject</button></div>
-<div id="subjectList">${state.subjects.map((s,i)=>`<div class="item"><div><b>${esc(s.name)}</b> <span class="badge">${esc(s.teacher||"Unassigned")}</span><div class="hint">${s.classes.map(esc).join(", ")} · ${s.lessons}/week</div></div><button class="danger delSubject" data-i="${i}">Delete</button></div>`).join("")||'<div class="empty">No subjects yet.</div>'}</div>`) }
+<div id="subjectList">${state.subjects.map((s,i)=>`<div class="item"><div><b>${esc(s.name)}</b><div class="hint">${state.assignments.filter(a=>a.subject===s.name).length} assignment(s)</div></div><button class="danger delSubject" data-i="${i}">Delete</button></div>`).join("")||'<div class="empty">No subjects yet.</div>'}</div>`)}
+function assignmentsView(){return panel("Teacher Assignment",`<p class="hint">After entering all subjects, assign each subject to a class, teacher and number of lessons per week.</p>
+<div class="grid"><label>Subject<select id="asSubject"><option value="">Select subject</option>${state.subjects.map(s=>`<option>${esc(s.name)}</option>`).join("")}</select></label><label>Class<select id="asClass"><option value="">Select class</option>${state.classes.map(c=>`<option>${esc(c)}</option>`).join("")}</select></label><label>Teacher<select id="asTeacher"><option value="">Select teacher</option>${state.teachers.map(t=>`<option>${esc(t)}</option>`).join("")}</select></label><label>Lessons per week<input id="asLessons" type="number" min="1" max="20" value="5"></label></div>
+<div class="actions"><button class="primary" id="addAssignment">Save assignment</button></div>
+<div>${state.assignments.map((a,i)=>`<div class="item"><div><b>${esc(a.subject)}</b> — ${esc(a.class)}<div class="hint">Teacher: ${esc(a.teacher)} · ${a.lessons} lesson(s)/week</div></div><button class="danger delAssignment" data-i="${i}">Delete</button></div>`).join("")||'<div class="empty">No teacher assignments yet.</div>'}</div>`)}
 function periodsView(){return panel("Periods and breaks",`<p class="hint">Breaks are not scheduled as lessons. Edit names and times, or add another period.</p>
 <div id="periodList">${state.periods.map((p,i)=>`<div class="item"><div><b>${esc(p.name)}</b> <span class="badge">${p.break?"Break":"Lesson"}</span><div class="hint">${esc(p.time)}</div></div><button class="danger delPeriod" data-i="${i}">Delete</button></div>`).join("")}</div>
 <div class="grid"><label>Name<input id="periodName" placeholder="Period 9"></label><label>Time<input id="periodTime" placeholder="2:50 - 3:30"></label><label style="display:flex;align-items:end;gap:7px"><input id="periodBreak" type="checkbox"> Mark as break</label></div>
@@ -107,7 +112,7 @@ function slots(){let out=[];for(const d of days)for(let p=0;p<state.periods.leng
 function generate(){
  state.timetable={};let occupiedTeacher={},occupiedClass={},used={};let warnings=[];
  const jobs=[];
- state.subjects.forEach(s=>s.classes.forEach(c=>{for(let n=0;n<s.lessons;n++)jobs.push({subject:s.name,teacher:s.teacher,class:c,key:s.name+"|"+c})}));
+ state.assignments.forEach(a=>{for(let n=0;n<a.lessons;n++)jobs.push({subject:a.subject,teacher:a.teacher,class:a.class,key:a.subject+"|"+a.class})});
  jobs.sort((a,b)=>b.lessons-a.lessons);
  const all=slots();
  for(const job of jobs){
@@ -129,20 +134,21 @@ function classView(){let c=state.selectedClass||state.classes[0]||"";return pane
 function teacherView(){let t=state.selectedTeacher||state.teachers[0]||"";return panel("Individual teacher timetable",`<div class="grid no-print"><label>Select teacher<select id="teacherSelect">${state.teachers.map(x=>`<option ${x===t?"selected":""}>${esc(x)}</option>`).join("")}</select></label></div><div class="actions no-print"><button class="primary" id="print">Print</button></div><div class="scroll"><table><thead><tr><th>Period</th>${days.map(d=>`<th>${d}</th>`).join("")}</tr></thead><tbody>${state.periods.map((p,i)=>`<tr><th>${esc(p.name)}<br>${esc(p.time)}</th>${days.map(d=>{let x=Object.values(state.timetable).find(v=>v.day===d&&v.period===i&&v.teacher===t);return `<td>${p.break?`<b>${esc(p.name)}</b>`:x?`<b>${esc(x.subject)}</b><br><span class="hint">${esc(x.class)}</span>`:"—"}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>`) }
 function bind(){
  const q=id=>document.getElementById(id);
+ q("loginBtn")?.addEventListener("click",()=>{if(q("loginUser").value.trim()==="admin"&&q("loginPass").value==="admin123"){state.loggedIn=true;state.view="dashboard";save();render()}else q("loginMsg").textContent="Incorrect username or password."});
+ document.querySelectorAll(".dash").forEach(b=>b.onclick=()=>{state.view=b.dataset.view;render()});
  q("saveSchool")?.addEventListener("click",()=>{state.school.name=q("schoolName").value.trim()||"My School";state.school.year=q("schoolYear").value.trim();save();render()});
  q("addClass")?.addEventListener("click",()=>{let v=q("newClass").value.trim();if(v&&!state.classes.includes(v)){state.classes.push(v);save();render()}});
  q("addTeacher")?.addEventListener("click",()=>{let v=q("newTeacher").value.trim();if(v&&!state.teachers.includes(v)){state.teachers.push(v);save();render()}});
- document.querySelectorAll(".delClass").forEach(b=>b.onclick=()=>{state.classes.splice(+b.dataset.i,1);save();render()});
- document.querySelectorAll(".delTeacher").forEach(b=>b.onclick=()=>{state.teachers.splice(+b.dataset.i,1);save();render()});
- q("addSubject")?.addEventListener("click",()=>{let name=q("subName").value.trim(),teacher=q("subTeacher").value,lessons=Math.max(1,Math.min(20,+q("subLessons").value||1)),classes=[...document.querySelectorAll(".classCheck:checked")].map(x=>x.value);if(name&&teacher&&classes.length){state.subjects.push({name,teacher,classes,lessons});save();render()}else alert("Enter subject, teacher and at least one class.")});
- document.querySelectorAll(".delSubject").forEach(b=>b.onclick=()=>{state.subjects.splice(+b.dataset.i,1);save();render()});
+ document.querySelectorAll(".delClass").forEach(b=>b.onclick=()=>{let old=state.classes[+b.dataset.i];state.classes.splice(+b.dataset.i,1);state.assignments=state.assignments.filter(a=>a.class!==old);save();render()});
+ document.querySelectorAll(".delTeacher").forEach(b=>b.onclick=()=>{let old=state.teachers[+b.dataset.i];state.teachers.splice(+b.dataset.i,1);state.assignments=state.assignments.filter(a=>a.teacher!==old);save();render()});
+ q("addSubject")?.addEventListener("click",()=>{let name=q("subName").value.trim();if(name&&!state.subjects.some(s=>s.name.toLowerCase()===name.toLowerCase())){state.subjects.push({name});save();render()}else alert("Enter a new subject name.")});
+ document.querySelectorAll(".delSubject").forEach(b=>b.onclick=()=>{let old=state.subjects[+b.dataset.i].name;state.subjects.splice(+b.dataset.i,1);state.assignments=state.assignments.filter(a=>a.subject!==old);save();render()});
+ q("addAssignment")?.addEventListener("click",()=>{let subject=q("asSubject").value,cl=q("asClass").value,teacher=q("asTeacher").value,lessons=Math.max(1,Math.min(20,+q("asLessons").value||1));if(subject&&cl&&teacher){state.assignments.push({subject,class:cl,teacher,lessons});save();render()}else alert("Select a subject, class and teacher.")});
+ document.querySelectorAll(".delAssignment").forEach(b=>b.onclick=()=>{state.assignments.splice(+b.dataset.i,1);save();render()});
  q("addPeriod")?.addEventListener("click",()=>{let name=q("periodName").value.trim(),time=q("periodTime").value.trim();if(name&&time){state.periods.push({name,time,break:q("periodBreak").checked});save();render()}});
  document.querySelectorAll(".delPeriod").forEach(b=>b.onclick=()=>{if(state.periods.length>1){state.periods.splice(+b.dataset.i,1);save();render()}});
- q("generateBtn")?.addEventListener("click",generate);
- q("clearTimetable")?.addEventListener("click",()=>{state.timetable={};save();render()});
- q("classSelect")?.addEventListener("change",e=>{state.selectedClass=e.target.value;render()});
- q("teacherSelect")?.addEventListener("change",e=>{state.selectedTeacher=e.target.value;render()});
- q("print")?.addEventListener("click",()=>window.print());
+ q("generateBtn")?.addEventListener("click",generate);q("clearTimetable")?.addEventListener("click",()=>{state.timetable={};save();render()});
+ q("classSelect")?.addEventListener("change",e=>{state.selectedClass=e.target.value;render()});q("teacherSelect")?.addEventListener("change",e=>{state.selectedTeacher=e.target.value;render()});q("print")?.addEventListener("click",()=>window.print());
 }
 render();
 </script>
