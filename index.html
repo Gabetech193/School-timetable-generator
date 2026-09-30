@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#14532d">
+<link rel="manifest" href="manifest.json">
+<title>School Timetable Generator</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f7f5;color:#17251c}
+header{background:#14532d;color:white;padding:16px;text-align:center;position:sticky;top:0;z-index:5}
+header h1{margin:0;font-size:21px}header small{opacity:.85}
+nav{display:flex;gap:6px;overflow:auto;padding:8px;background:white;border-bottom:1px solid #ddd}
+nav button{white-space:nowrap;border:0;border-radius:8px;padding:10px 13px;background:#e8eee9;color:#16351f;font-weight:bold}
+nav button.active{background:#14532d;color:#fff}
+main{max-width:1100px;margin:auto;padding:14px}.panel{background:white;border-radius:12px;padding:15px;margin-bottom:14px;box-shadow:0 1px 4px #0001}
+h2{margin:0 0 12px;font-size:18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+label{font-weight:bold;font-size:13px}input,select{width:100%;padding:11px;margin-top:5px;border:1px solid #bbb;border-radius:8px;font-size:16px}
+button.primary,.primary{background:#14532d;color:#fff;border:0;border-radius:8px;padding:11px 15px;font-weight:bold}
+button.secondary{background:#e8eee9;border:0;border-radius:8px;padding:10px 13px;font-weight:bold}
+button.danger{background:#b91c1c;color:#fff;border:0;border-radius:8px;padding:8px 10px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.hint{font-size:13px;color:#647067}
+table{border-collapse:collapse;width:100%;min-width:650px}th,td{border:1px solid #cbd5ce;padding:7px;text-align:center;vertical-align:middle}th{background:#e9f0eb;font-size:12px}td{font-size:12px}
+.scroll{overflow:auto}.empty{padding:25px;text-align:center;color:#68736b}
+.item{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid #ddd;border-radius:8px;padding:9px;margin-top:7px}
+.badge{display:inline-block;padding:3px 7px;border-radius:10px;background:#e7f3ea;font-size:11px}
+.notice{padding:10px;border-radius:8px;background:#fff7d6;margin-top:10px;font-size:13px}
+@media print{
+ nav,.no-print,header small{display:none!important}body{background:white}main{max-width:none;padding:0}.panel{box-shadow:none;border:0}
+ table{min-width:0;font-size:10px}th,td{padding:4px}
+}
+</style>
+</head>
+<body>
+<header><h1 id="title">School Timetable Generator</h1><small>Offline timetable planning and generation</small></header>
+<nav id="nav"></nav>
+<main id="app"></main>
+<script>
+const KEY="school_timetable_v1";
+const days=["Monday","Tuesday","Wednesday","Thursday","Friday"];
+const defaultState={
+ school:{name:"My School",year:"2026"},
+ periods:[
+  {name:"Period 1",time:"8:00 - 8:40"},{name:"Period 2",time:"8:40 - 9:20"},
+  {name:"Period 3",time:"9:20 - 10:00"},{name:"Break",time:"10:00 - 10:30",break:true},
+  {name:"Period 4",time:"10:30 - 11:10"},{name:"Period 5",time:"11:10 - 11:50"},
+  {name:"Period 6",time:"11:50 - 12:30"},{name:"Lunch",time:"12:30 - 1:30",break:true},
+  {name:"Period 7",time:"1:30 - 2:10"},{name:"Period 8",time:"2:10 - 2:50"}
+ ],
+ classes:["Grade 1A","Grade 1B"],teachers:["Teacher 1","Teacher 2"],
+ subjects:[
+  {name:"Mathematics",teacher:"Teacher 1",classes:["Grade 1A","Grade 1B"],lessons:5},
+  {name:"English",teacher:"Teacher 2",classes:["Grade 1A","Grade 1B"],lessons:5}
+ ],
+ timetable:{},view:"setup",selectedClass:"",selectedTeacher:""
+};
+let state=load();
+function load(){try{return Object.assign(structuredClone(defaultState),JSON.parse(localStorage.getItem(KEY))||{})}catch(e){return structuredClone(defaultState)}}
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function el(tag,attrs={},html=""){let x=document.createElement(tag);Object.entries(attrs).forEach(([k,v])=>x.setAttribute(k,v));x.innerHTML=html;return x}
+const navItems=[["setup","Setup"],["subjects","Subjects"],["periods","Periods"],["generate","Generate"],["block","Block"],["class","Class"],["teacher","Teacher"]];
+function renderNav(){
+ const n=document.getElementById("nav");n.innerHTML="";
+ navItems.forEach(([id,label])=>{let b=el("button",{type:"button"},label);if(state.view===id)b.className="active";b.onclick=()=>{state.view=id;render()};n.appendChild(b)})
+}
+function panel(title,body){return `<section class="panel"><h2>${title}</h2>${body}</section>`}
+function render(){
+ renderNav();document.getElementById("title").textContent=state.school.name||"School Timetable Generator";
+ const a=document.getElementById("app");
+ if(state.view==="setup")a.innerHTML=setupView();
+ if(state.view==="subjects")a.innerHTML=subjectsView();
+ if(state.view==="periods")a.innerHTML=periodsView();
+ if(state.view==="generate")a.innerHTML=generateView();
+ if(state.view==="block")a.innerHTML=blockView();
+ if(state.view==="class")a.innerHTML=classView();
+ if(state.view==="teacher")a.innerHTML=teacherView();
+ bind();
+}
+function setupView(){return panel("School setup",`<div class="grid">
+<label>School name<input id="schoolName" value="${esc(state.school.name)}"></label>
+<label>Academic year<input id="schoolYear" value="${esc(state.school.year)}"></label>
+</div>
+<div class="actions"><button class="primary" id="saveSchool">Save school details</button></div>
+<div class="notice">Data is stored locally on this device. No internet connection is required after the app files are installed.</div>
+${panel("Classes",`<div id="classList">${state.classes.map((x,i)=>`<div class="item"><span>${esc(x)}</span><button class="danger delClass" data-i="${i}">Delete</button></div>`).join("")||'<div class="empty">No classes yet.</div>'}</div>
+<div class="grid"><label>New class<input id="newClass" placeholder="e.g. Grade 2A"></label></div><div class="actions"><button class="primary" id="addClass">Add class</button></div>`)}
+${panel("Teachers",`<div id="teacherList">${state.teachers.map((x,i)=>`<div class="item"><span>${esc(x)}</span><button class="danger delTeacher" data-i="${i}">Delete</button></div>`).join("")||'<div class="empty">No teachers yet.</div>'}</div>
+<div class="grid"><label>New teacher<input id="newTeacher" placeholder="Teacher name"></label></div><div class="actions"><button class="primary" id="addTeacher">Add teacher</button></div>`)}`}
+function subjectsView(){return panel("Subjects and weekly lessons",`<p class="hint">Each subject can be assigned to a teacher, selected classes, and a number of lessons per week for each selected class.</p>
+<div class="grid"><label>Subject name<input id="subName" placeholder="e.g. Science"></label>
+<label>Teacher<select id="subTeacher"><option value="">Select teacher</option>${state.teachers.map(t=>`<option>${esc(t)}</option>`).join("")}</select></label>
+<label>Lessons per week<input id="subLessons" type="number" min="1" max="20" value="4"></label></div>
+<label>Classes</label><div class="grid" id="classChecks">${state.classes.map(c=>`<label><input type="checkbox" class="classCheck" value="${esc(c)}"> ${esc(c)}</label>`).join("")}</div>
+<div class="actions"><button class="primary" id="addSubject">Add subject</button></div>
+<div id="subjectList">${state.subjects.map((s,i)=>`<div class="item"><div><b>${esc(s.name)}</b> <span class="badge">${esc(s.teacher||"Unassigned")}</span><div class="hint">${s.classes.map(esc).join(", ")} · ${s.lessons}/week</div></div><button class="danger delSubject" data-i="${i}">Delete</button></div>`).join("")||'<div class="empty">No subjects yet.</div>'}</div>`) }
+function periodsView(){return panel("Periods and breaks",`<p class="hint">Breaks are not scheduled as lessons. Edit names and times, or add another period.</p>
+<div id="periodList">${state.periods.map((p,i)=>`<div class="item"><div><b>${esc(p.name)}</b> <span class="badge">${p.break?"Break":"Lesson"}</span><div class="hint">${esc(p.time)}</div></div><button class="danger delPeriod" data-i="${i}">Delete</button></div>`).join("")}</div>
+<div class="grid"><label>Name<input id="periodName" placeholder="Period 9"></label><label>Time<input id="periodTime" placeholder="2:50 - 3:30"></label><label style="display:flex;align-items:end;gap:7px"><input id="periodBreak" type="checkbox"> Mark as break</label></div>
+<div class="actions"><button class="primary" id="addPeriod">Add period</button></div>`) }
+function generateView(){let count=Object.keys(state.timetable).length;return panel("Automatic timetable generator",`
+<p>Generation uses a local constraint-based scheduler. It prevents a class or teacher from being assigned two lessons at the same time and spreads repeated lessons across the week where possible.</p>
+<div class="actions"><button class="primary" id="generateBtn">Generate timetable</button><button class="secondary" id="clearTimetable">Clear timetable</button></div>
+<div id="genResult">${count?`<div class="notice">${count} lesson slots are currently stored. Regenerating will replace them.</div>`:'<div class="empty">No timetable generated yet.</div>'}</div>`) }
+function slots(){let out=[];for(const d of days)for(let p=0;p<state.periods.length;p++)if(!state.periods[p].break)out.push({d,p});return out}
+function generate(){
+ state.timetable={};let occupiedTeacher={},occupiedClass={},used={};let warnings=[];
+ const jobs=[];
+ state.subjects.forEach(s=>s.classes.forEach(c=>{for(let n=0;n<s.lessons;n++)jobs.push({subject:s.name,teacher:s.teacher,class:c,key:s.name+"|"+c})}));
+ jobs.sort((a,b)=>b.lessons-a.lessons);
+ const all=slots();
+ for(const job of jobs){
+  if(!job.teacher){warnings.push("Unassigned teacher for "+job.subject+" / "+job.class);continue}
+  let candidates=all.filter(x=>!occupiedClass[x.d+"|"+x.p+"|"+job.class]&&!occupiedTeacher[x.d+"|"+x.p+"|"+job.teacher]);
+  candidates.sort((a,b)=>(used[job.key+"|"+a.d]?1:0)-(used[job.key+"|"+b.d]?1:0));
+  let pick=candidates[0];
+  if(!pick){warnings.push("Could not place "+job.subject+" for "+job.class+"; reduce lessons or add periods.");continue}
+  let id=pick.d+"|"+pick.p+"|"+job.class;
+  state.timetable[id]={day:pick.d,period:pick.p,class:job.class,subject:job.subject,teacher:job.teacher};
+  occupiedClass[pick.d+"|"+pick.p+"|"+job.class]=1;occupiedTeacher[pick.d+"|"+pick.p+"|"+job.teacher]=1;used[job.key+"|"+pick.d]=(used[job.key+"|"+pick.d]||0)+1;
+ }
+ save();state.view="generate";render();
+ document.getElementById("genResult").innerHTML=`<div class="notice">Generated ${Object.keys(state.timetable).length} lesson slots.${warnings.length?" "+warnings.length+" item(s) need attention.":""}</div>${warnings.length?`<div class="notice">${warnings.map(esc).join("<br>")}</div>`:""}`;
+}
+function cell(day,p,cls){let x=state.timetable[day+"|"+p+"|"+cls];return x?`<b>${esc(x.subject)}</b><br><span class="hint">${esc(x.teacher)}</span>`:"—"}
+function blockView(){return panel("Block timetable",`<div class="actions no-print"><button class="primary" id="print">Print</button></div><div class="scroll"><table><thead><tr><th>Time</th>${state.classes.map(c=>`<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${state.periods.map((p,i)=>`<tr><th>${esc(p.name)}<br>${esc(p.time)}</th>${state.classes.map(c=>p.break?`<td colspan="1"><b>${esc(p.name)}</b></td>`:`<td>${cell("",i,c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`) }
+function classView(){let c=state.selectedClass||state.classes[0]||"";return panel("Class timetable",`<div class="grid no-print"><label>Select class<select id="classSelect">${state.classes.map(x=>`<option ${x===c?"selected":""}>${esc(x)}</option>`).join("")}</select></label></div><div class="actions no-print"><button class="primary" id="print">Print</button></div><div class="scroll"><table><thead><tr><th>Period</th>${days.map(d=>`<th>${d}</th>`).join("")}</tr></thead><tbody>${state.periods.map((p,i)=>`<tr><th>${esc(p.name)}<br>${esc(p.time)}</th>${days.map(d=>`<td>${p.break?`<b>${esc(p.name)}</b>`:cell(d,i,c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`) }
+function teacherView(){let t=state.selectedTeacher||state.teachers[0]||"";return panel("Individual teacher timetable",`<div class="grid no-print"><label>Select teacher<select id="teacherSelect">${state.teachers.map(x=>`<option ${x===t?"selected":""}>${esc(x)}</option>`).join("")}</select></label></div><div class="actions no-print"><button class="primary" id="print">Print</button></div><div class="scroll"><table><thead><tr><th>Period</th>${days.map(d=>`<th>${d}</th>`).join("")}</tr></thead><tbody>${state.periods.map((p,i)=>`<tr><th>${esc(p.name)}<br>${esc(p.time)}</th>${days.map(d=>{let x=Object.values(state.timetable).find(v=>v.day===d&&v.period===i&&v.teacher===t);return `<td>${p.break?`<b>${esc(p.name)}</b>`:x?`<b>${esc(x.subject)}</b><br><span class="hint">${esc(x.class)}</span>`:"—"}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>`) }
+function bind(){
+ const q=id=>document.getElementById(id);
+ q("saveSchool")?.addEventListener("click",()=>{state.school.name=q("schoolName").value.trim()||"My School";state.school.year=q("schoolYear").value.trim();save();render()});
+ q("addClass")?.addEventListener("click",()=>{let v=q("newClass").value.trim();if(v&&!state.classes.includes(v)){state.classes.push(v);save();render()}});
+ q("addTeacher")?.addEventListener("click",()=>{let v=q("newTeacher").value.trim();if(v&&!state.teachers.includes(v)){state.teachers.push(v);save();render()}});
+ document.querySelectorAll(".delClass").forEach(b=>b.onclick=()=>{state.classes.splice(+b.dataset.i,1);save();render()});
+ document.querySelectorAll(".delTeacher").forEach(b=>b.onclick=()=>{state.teachers.splice(+b.dataset.i,1);save();render()});
+ q("addSubject")?.addEventListener("click",()=>{let name=q("subName").value.trim(),teacher=q("subTeacher").value,lessons=Math.max(1,Math.min(20,+q("subLessons").value||1)),classes=[...document.querySelectorAll(".classCheck:checked")].map(x=>x.value);if(name&&teacher&&classes.length){state.subjects.push({name,teacher,classes,lessons});save();render()}else alert("Enter subject, teacher and at least one class.")});
+ document.querySelectorAll(".delSubject").forEach(b=>b.onclick=()=>{state.subjects.splice(+b.dataset.i,1);save();render()});
+ q("addPeriod")?.addEventListener("click",()=>{let name=q("periodName").value.trim(),time=q("periodTime").value.trim();if(name&&time){state.periods.push({name,time,break:q("periodBreak").checked});save();render()}});
+ document.querySelectorAll(".delPeriod").forEach(b=>b.onclick=()=>{if(state.periods.length>1){state.periods.splice(+b.dataset.i,1);save();render()}});
+ q("generateBtn")?.addEventListener("click",generate);
+ q("clearTimetable")?.addEventListener("click",()=>{state.timetable={};save();render()});
+ q("classSelect")?.addEventListener("change",e=>{state.selectedClass=e.target.value;render()});
+ q("teacherSelect")?.addEventListener("change",e=>{state.selectedTeacher=e.target.value;render()});
+ q("print")?.addEventListener("click",()=>window.print());
+}
+render();
+</script>
+</body>
+</html>
