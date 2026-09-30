@@ -26,9 +26,10 @@ table{border-collapse:collapse;width:100%;min-width:650px}th,td{border:1px solid
 .badge{display:inline-block;padding:3px 7px;border-radius:10px;background:#e7f3ea;font-size:11px}
 .notice{padding:10px;border-radius:8px;background:#fff7d6;margin-top:10px;font-size:13px}
 @media print{
- nav,.no-print,header small{display:none!important}body{background:white}main{max-width:none;padding:0}.panel{box-shadow:none;border:0}
+ header,nav,.no-print{display:none!important}body{background:white;margin:0}main{max-width:none;padding:0}.panel{box-shadow:none;border:0;padding:0;margin:0}.panel>h2{display:none}.print-title{display:block!important;text-align:center;font-size:18px;font-weight:bold;margin:0 0 10px}.print-subtitle{display:block!important;text-align:center;font-size:12px;margin:0 0 12px}
  table{min-width:0;font-size:10px}th,td{padding:4px}
 }
+.print-title,.print-subtitle{display:none}
 </style>
 </head>
 <body>
@@ -112,26 +113,51 @@ function slots(){let out=[];for(const d of days)for(let p=0;p<state.periods.leng
 function generate(){
  state.timetable={};let occupiedTeacher={},occupiedClass={},used={};let warnings=[];
  const jobs=[];
- state.assignments.forEach(a=>{for(let n=0;n<a.lessons;n++)jobs.push({subject:a.subject,teacher:a.teacher,class:a.class,key:a.subject+"|"+a.class})});
- jobs.sort((a,b)=>b.lessons-a.lessons);
+ state.assignments.forEach(a=>{for(let n=0;n<Math.max(0,+a.lessons||0);n++)jobs.push({subject:a.subject,teacher:a.teacher,class:a.class,key:a.subject+"|"+a.class})});
+ const firstLesson=state.periods.findIndex(p=>!p.break);
+ const lunchIndex=state.periods.findIndex(p=>p.break&&/lunch/i.test(p.name));
+ const ppiJobs=jobs.filter(j=>j.subject.trim().toLowerCase()==="ppi");
+ const otherJobs=jobs.filter(j=>j.subject.trim().toLowerCase()!=="ppi");
+ // Shuffle subjects before scheduling to avoid the same subjects repeatedly occupying the same patterns.
+ const shuffle=a=>{for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+ shuffle(otherJobs);
+ // Schedule PPI first on Friday's first lesson.
+ for(const job of ppiJobs){
+  if(firstLesson<0){warnings.push("No lesson period is available for PPI.");continue}
+  const d="Friday",p=firstLesson;
+  if(occupiedClass[d+"|"+p+"|"+job.class]||occupiedTeacher[d+"|"+p+"|"+job.teacher]){warnings.push("PPI could not be placed first on Friday for "+job.class+".");continue}
+  const id=d+"|"+p+"|"+job.class;
+  state.timetable[id]={day:d,period:p,class:job.class,subject:job.subject,teacher:job.teacher};
+  occupiedClass[d+"|"+p+"|"+job.class]=1;occupiedTeacher[d+"|"+p+"|"+job.teacher]=1;used[job.key+"|"+d]=(used[job.key+"|"+d]||0)+1;
+ }
  const all=slots();
- for(const job of jobs){
+ for(const job of otherJobs){
   if(!job.teacher){warnings.push("Unassigned teacher for "+job.subject+" / "+job.class);continue}
-  let candidates=all.filter(x=>!occupiedClass[x.d+"|"+x.p+"|"+job.class]&&!occupiedTeacher[x.d+"|"+x.p+"|"+job.teacher]);
-  candidates.sort((a,b)=>(used[job.key+"|"+a.d]?1:0)-(used[job.key+"|"+b.d]?1:0));
+  const lower=job.subject.trim().toLowerCase();
+  let candidates=all.filter(x=>{
+   if(occupiedClass[x.d+"|"+x.p+"|"+job.class]||occupiedTeacher[x.d+"|"+x.p+"|"+job.teacher])return false;
+   // Mathematics and English must not be scheduled after lunch.
+   if((lower==="mathematics"||lower==="math"||lower==="english")&&lunchIndex>=0&&x.p>lunchIndex)return false;
+   // Keep PPI first on Friday by reserving that slot for PPI when PPI exists for this class.
+   if(x.d==="Friday"&&x.p===firstLesson&&state.assignments.some(a=>a.class===job.class&&a.subject.trim().toLowerCase()==="ppi"))return false;
+   return true;
+  });
+  // Prefer days with fewer copies of this subject, then add randomness to break monotony.
+  shuffle(candidates);
+  candidates.sort((a,b)=>(used[job.key+"|"+a.d]||0)-(used[job.key+"|"+b.d]||0));
   let pick=candidates[0];
-  if(!pick){warnings.push("Could not place "+job.subject+" for "+job.class+"; reduce lessons or add periods.");continue}
+  if(!pick){warnings.push("Could not place "+job.subject+" for "+job.class+"; adjust lessons, periods or rules.");continue}
   let id=pick.d+"|"+pick.p+"|"+job.class;
   state.timetable[id]={day:pick.d,period:pick.p,class:job.class,subject:job.subject,teacher:job.teacher};
   occupiedClass[pick.d+"|"+pick.p+"|"+job.class]=1;occupiedTeacher[pick.d+"|"+pick.p+"|"+job.teacher]=1;used[job.key+"|"+pick.d]=(used[job.key+"|"+pick.d]||0)+1;
  }
  save();state.view="generate";render();
- document.getElementById("genResult").innerHTML=`<div class="notice">Generated ${Object.keys(state.timetable).length} lesson slots.${warnings.length?" "+warnings.length+" item(s) need attention.":""}</div>${warnings.length?`<div class="notice">${warnings.map(esc).join("<br>")}</div>`:""}`;
+ document.getElementById("genResult").innerHTML=`<div class="notice">Generated ${Object.keys(state.timetable).length} lesson slots with PPI, Mathematics/English and subject-shuffling rules applied.${warnings.length?" "+warnings.length+" item(s) need attention.":""}</div>${warnings.length?`<div class="notice">${warnings.map(esc).join("<br>")}</div>`:""}`;
 }
 function cell(day,p,cls){let x=state.timetable[day+"|"+p+"|"+cls];return x?`<b>${esc(x.subject)}</b><br><span class="hint">${esc(x.teacher)}</span>`:"—"}
-function blockView(){return panel("Block timetable",`<div class="actions no-print"><button class="primary" id="print">Print</button></div><div class="scroll"><table><thead><tr><th>Time</th>${state.classes.map(c=>`<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${state.periods.map((p,i)=>`<tr><th>${esc(p.name)}<br>${esc(p.time)}</th>${state.classes.map(c=>p.break?`<td colspan="1"><b>${esc(p.name)}</b></td>`:`<td>${cell("",i,c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`) }
-function classView(){let c=state.selectedClass||state.classes[0]||"";return panel("Class timetable",`<div class="grid no-print"><label>Select class<select id="classSelect">${state.classes.map(x=>`<option ${x===c?"selected":""}>${esc(x)}</option>`).join("")}</select></label></div><div class="actions no-print"><button class="primary" id="print">Print</button></div><div class="scroll"><table><thead><tr><th>Period</th>${days.map(d=>`<th>${d}</th>`).join("")}</tr></thead><tbody>${state.periods.map((p,i)=>`<tr><th>${esc(p.name)}<br>${esc(p.time)}</th>${days.map(d=>`<td>${p.break?`<b>${esc(p.name)}</b>`:cell(d,i,c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`) }
-function teacherView(){let t=state.selectedTeacher||state.teachers[0]||"";return panel("Individual teacher timetable",`<div class="grid no-print"><label>Select teacher<select id="teacherSelect">${state.teachers.map(x=>`<option ${x===t?"selected":""}>${esc(x)}</option>`).join("")}</select></label></div><div class="actions no-print"><button class="primary" id="print">Print</button></div><div class="scroll"><table><thead><tr><th>Period</th>${days.map(d=>`<th>${d}</th>`).join("")}</tr></thead><tbody>${state.periods.map((p,i)=>`<tr><th>${esc(p.name)}<br>${esc(p.time)}</th>${days.map(d=>{let x=Object.values(state.timetable).find(v=>v.day===d&&v.period===i&&v.teacher===t);return `<td>${p.break?`<b>${esc(p.name)}</b>`:x?`<b>${esc(x.subject)}</b><br><span class="hint">${esc(x.class)}</span>`:"—"}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>`) }
+function blockView(){return panel("Block timetable",`<div class="print-title">${esc(state.school.name||"School")} - Block Timetable</div><div class="print-subtitle">Academic Year ${esc(state.school.year||"")}</div><div class="actions no-print"><button class="primary" id="print">Print</button></div><div class="scroll"><table><thead><tr><th>Day / Time</th>${state.classes.map(c=>`<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${days.map(d=>state.periods.map((p,i)=>p.break?`<tr><th>${d}<br>${esc(p.name)}<br>${esc(p.time)}</th><td colspan="${Math.max(1,state.classes.length)}"><b>${esc(p.name)}</b></td></tr>`:`<tr><th>${d}<br>${esc(p.name)}<br>${esc(p.time)}</th>${state.classes.map(c=>`<td>${cell(d,i,c)}</td>`).join("")}</tr>`).join("")).join("")}</tbody></table></div>`) }
+function classView(){let c=state.selectedClass||state.classes[0]||"";return panel("Class timetable",`<div class="print-title">${esc(state.school.name||"School")} - Class Timetable</div><div class="print-subtitle">${esc(c)} · Academic Year ${esc(state.school.year||"")}</div><div class="grid no-print"><label>Select class<select id="classSelect">${state.classes.map(x=>`<option ${x===c?"selected":""}>${esc(x)}</option>`).join("")}</select></label></div><div class="actions no-print"><button class="primary" id="print">Print</button></div><div class="scroll"><table><thead><tr><th>Period</th>${days.map(d=>`<th>${d}</th>`).join("")}</tr></thead><tbody>${state.periods.map((p,i)=>`<tr><th>${esc(p.name)}<br>${esc(p.time)}</th>${days.map(d=>`<td>${p.break?`<b>${esc(p.name)}</b>`:cell(d,i,c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`) }
+function teacherView(){let t=state.selectedTeacher||state.teachers[0]||"";return panel("Individual teacher timetable",`<div class="print-title">${esc(state.school.name||"School")} - Teacher Timetable</div><div class="print-subtitle">${esc(t)} · Academic Year ${esc(state.school.year||"")}</div><div class="grid no-print"><label>Select teacher<select id="teacherSelect">${state.teachers.map(x=>`<option ${x===t?"selected":""}>${esc(x)}</option>`).join("")}</select></label></div><div class="actions no-print"><button class="primary" id="print">Print</button></div><div class="scroll"><table><thead><tr><th>Period</th>${days.map(d=>`<th>${d}</th>`).join("")}</tr></thead><tbody>${state.periods.map((p,i)=>`<tr><th>${esc(p.name)}<br>${esc(p.time)}</th>${days.map(d=>{let x=Object.values(state.timetable).find(v=>v.day===d&&v.period===i&&v.teacher===t);return `<td>${p.break?`<b>${esc(p.name)}</b>`:x?`<b>${esc(x.subject)}</b><br><span class="hint">${esc(x.class)}</span>`:"—"}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>`) }
 function bind(){
  const q=id=>document.getElementById(id);
  q("loginBtn")?.addEventListener("click",()=>{if(q("loginUser").value.trim()==="admin"&&q("loginPass").value==="admin123"){state.loggedIn=true;state.view="dashboard";save();render()}else q("loginMsg").textContent="Incorrect username or password."});
