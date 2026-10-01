@@ -1,182 +1,23 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#14532d">
-<link rel="manifest" href="manifest.json">
-<title>School Timetable Generator</title>
-<style>
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f7f5;color:#17251c}
-header{background:#14532d;color:white;padding:16px;text-align:center;position:sticky;top:0;z-index:5}
-header h1{margin:0;font-size:21px}header small{opacity:.85}
-nav{display:flex;gap:6px;overflow:auto;padding:8px;background:white;border-bottom:1px solid #ddd}
-nav button{white-space:nowrap;border:0;border-radius:8px;padding:10px 13px;background:#e8eee9;color:#16351f;font-weight:bold}
-nav button.active{background:#14532d;color:#fff}
-main{max-width:1100px;margin:auto;padding:14px}.panel{background:white;border-radius:12px;padding:15px;margin-bottom:14px;box-shadow:0 1px 4px #0001}
-h2{margin:0 0 12px;font-size:18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
-label{font-weight:bold;font-size:13px}input,select{width:100%;padding:11px;margin-top:5px;border:1px solid #bbb;border-radius:8px;font-size:16px}
-button.primary,.primary{background:#14532d;color:#fff;border:0;border-radius:8px;padding:11px 15px;font-weight:bold}
-button.secondary{background:#e8eee9;border:0;border-radius:8px;padding:10px 13px;font-weight:bold}
-button.danger{background:#b91c1c;color:#fff;border:0;border-radius:8px;padding:8px 10px}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.hint{font-size:13px;color:#647067}
-table{border-collapse:collapse;width:100%;min-width:650px}th,td{border:1px solid #cbd5ce;padding:7px;text-align:center;vertical-align:middle}th{background:#e9f0eb;font-size:12px}td{font-size:12px}
-.scroll{overflow:auto}.empty{padding:25px;text-align:center;color:#68736b}
-.item{display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid #ddd;border-radius:8px;padding:9px;margin-top:7px}
-.badge{display:inline-block;padding:3px 7px;border-radius:10px;background:#e7f3ea;font-size:11px}
-.notice{padding:10px;border-radius:8px;background:#fff7d6;margin-top:10px;font-size:13px}
-@media print{
- header,nav,.no-print{display:none!important}body{background:white;margin:0}main{max-width:none;padding:0}.panel{box-shadow:none;border:0;padding:0;margin:0}.panel>h2{display:none}.print-title{display:block!important;text-align:center;font-size:18px;font-weight:bold;margin:0 0 10px}.print-subtitle{display:block!important;text-align:center;font-size:12px;margin:0 0 12px}
- table{min-width:0;font-size:10px}th,td{padding:4px}
-}
-.print-title,.print-subtitle{display:none}
-</style>
-</head>
-<body>
-<header><h1 id="title">School Timetable Generator</h1><small>Offline timetable planning and generation</small></header>
-<nav id="nav"></nav>
-<main id="app"></main>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#087f8c"><link rel="manifest" href="manifest.json"><title>School Timetable Generator</title><style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial;background:#f3f6f8;color:#17202a}button,input,select{font:inherit}button{cursor:pointer}.hide{display:none!important}.login{min-height:100vh;display:grid;place-items:center;padding:20px}.card,.panel{background:#fff;border:1px solid #d9e1e6;border-radius:14px;padding:18px;box-shadow:0 3px 14px #0001}.card{width:min(420px,100%)}h1,h2,h3{margin-top:0}.login h1{text-align:center;color:#087f8c}.field{margin:10px 0}.field label{display:block;font-weight:bold;margin-bottom:5px}input,select{width:100%;padding:10px;border:1px solid #ccd6db;border-radius:8px}.btn{border:0;border-radius:8px;padding:10px 14px;background:#087f8c;color:#fff;font-weight:bold}.blue{background:#1971c2}.red{background:#c92a2a}.light{background:#e8f1f3;color:#17404a}.small{padding:6px 9px;font-size:12px}.head{background:linear-gradient(135deg,#087f8c,#1971c2);color:#fff;padding:15px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:20}.head h1{font-size:20px;margin:0}.nav{display:flex;gap:6px;overflow:auto;background:#fff;padding:8px;position:sticky;top:60px;z-index:19;border-bottom:1px solid #ddd}.nav button{border:0;border-radius:8px;padding:9px 12px;white-space:nowrap;background:#edf3f5;font-weight:bold}.nav .active{background:#087f8c;color:#fff}main{max-width:1500px;margin:auto;padding:14px}.panel{margin-bottom:14px;box-shadow:none}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat{padding:16px;background:#eef8fa;border-radius:12px}.stat b{display:block;font-size:28px;color:#087f8c}.actions{display:flex;gap:8px;flex-wrap:wrap}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.toolbar select{width:auto;min-width:180px}.scroll{overflow:auto}table{border-collapse:collapse;width:100%}th,td{border:1px solid #d9e1e6;padding:8px}th{background:#edf5f7}.timetable{min-width:900px}.timetable th,.timetable td{text-align:center;min-width:105px;height:66px}.timetable th:first-child,.timetable td:first-child{position:sticky;left:0;background:#edf5f7;z-index:4;min-width:100px;font-weight:bold}.timetable thead th{position:sticky;top:0;z-index:5}.subject{font-weight:bold;color:#075a6a}.meta{font-size:12px;color:#5c6870}.break{background:#fff3bf!important;color:#7c5c00;font-weight:bold}.empty{color:#a0a9af}.notice{padding:10px;background:#fff3bf;border:1px solid #ffe066;border-radius:8px;margin-top:10px}.success{background:#e6fcf5;border-color:#96f2d7;color:#087f5b}.print-title{display:none;text-align:center}.print-title h2{margin:0}.print-title p{margin:4px;color:#555}footer{text-align:center;color:#68737d;font-size:12px;padding:20px}@media(max-width:700px){.grid,.grid3,.cards{grid-template-columns:1fr}.nav{top:60px}}@media print{.head,.nav,footer,.no-print{display:none!important}main{padding:0}.panel{border:0;padding:0}.print-title{display:block}.scroll{overflow:visible}.timetable{min-width:0;width:100%}.timetable th:first-child,.timetable td:first-child{position:static}.timetable th,.timetable td{font-size:10px;height:50px;padding:4px}}
+</style></head><body>
+<div id="login" class="login"><div class="card"><h1>School Timetable Generator</h1><p style="text-align:center">Offline timetable planning</p><form id="lf"><div class="field"><label>Username</label><input id="u" required></div><div class="field"><label>Password</label><input id="pw" type="password" required></div><button class="btn" style="width:100%">Login</button></form><p style="text-align:center;font-size:12px">Initial login: <b>admin</b> / <b>admin123</b></p><div id="lm" class="notice hide"></div></div></div>
+<div id="app" class="hide"><div class="head"><div><h1 id="school">School Timetable Generator</h1><small id="year"></small></div><button id="logout" class="btn light no-print">Logout</button></div><div id="nav" class="nav no-print"></div><main id="main"></main><footer>Offline • Data stored on this phone</footer></div>
 <script>
-const KEY="school_timetable_v1";
-const days=["Monday","Tuesday","Wednesday","Thursday","Friday"];
-const defaultState={
- school:{name:"My School",year:"2026"},
- periods:[
-  {name:"Period 1",time:"8:00 - 8:40"},{name:"Period 2",time:"8:40 - 9:20"},
-  {name:"Period 3",time:"9:20 - 10:00"},{name:"Break",time:"10:00 - 10:30",break:true},
-  {name:"Period 4",time:"10:30 - 11:10"},{name:"Period 5",time:"11:10 - 11:50"},
-  {name:"Period 6",time:"11:50 - 12:30"},{name:"Lunch",time:"12:30 - 1:30",break:true},
-  {name:"Period 7",time:"1:30 - 2:10"},{name:"Period 8",time:"2:10 - 2:50"}
- ],
- classes:["Grade 1A","Grade 1B"],teachers:["Teacher 1","Teacher 2"],
- subjects:[
-  {name:"Mathematics",teacher:"Teacher 1",classes:["Grade 1A","Grade 1B"],lessons:5},
-  {name:"English",teacher:"Teacher 2",classes:["Grade 1A","Grade 1B"],lessons:5}
- ],
- timetable:{},assignments:[],view:"login",selectedClass:"",selectedTeacher:"",loggedIn:false
-};
-let state=load();
-function load(){try{let saved=JSON.parse(localStorage.getItem(KEY))||{};let x=Object.assign(structuredClone(defaultState),saved);if(!x.assignments||!x.assignments.length){x.assignments=[];(x.subjects||[]).forEach(s=>{(s.classes||[]).forEach(c=>x.assignments.push({subject:s.name,teacher:s.teacher||"",class:c,lessons:s.lessons||1}))})}x.subjects=(x.subjects||[]).map(s=>typeof s==="string"?{name:s}:s);return x}catch(e){return structuredClone(defaultState)}}
-function save(){localStorage.setItem(KEY,JSON.stringify(state))}
-function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
-function el(tag,attrs={},html=""){let x=document.createElement(tag);Object.entries(attrs).forEach(([k,v])=>x.setAttribute(k,v));x.innerHTML=html;return x}
-const navItems=[["dashboard","Dashboard"],["setup","School Setup"],["subjects","Subjects"],["assignments","Teacher Assignment"],["periods","Periods"],["generate","Generate"],["block","Block"],["class","Class"],["teacher","Teacher"]];
-function renderNav(){const n=document.getElementById("nav");n.innerHTML="";if(!state.loggedIn)return;navItems.forEach(([id,label])=>{let b=el("button",{type:"button"},label);if(state.view===id)b.className="active";b.onclick=()=>{state.view=id;render()};n.appendChild(b)});let out=el("button",{type:"button"},"Logout");out.onclick=()=>{state.loggedIn=false;state.view="login";save();render()};n.appendChild(out)}
-function panel(title,body){return `<section class="panel"><h2>${title}</h2>${body}</section>`}
-function render(){
- renderNav();document.getElementById("title").textContent=state.loggedIn?(state.school.name||"School Timetable Generator"):"School Timetable Generator";
- const a=document.getElementById("app");
- if(!state.loggedIn){a.innerHTML=loginView();bind();return}
- if(state.view==="dashboard")a.innerHTML=dashboardView();
- if(state.view==="setup")a.innerHTML=setupView();
- if(state.view==="subjects")a.innerHTML=subjectsView();
- if(state.view==="assignments")a.innerHTML=assignmentsView();
- if(state.view==="periods")a.innerHTML=periodsView();
- if(state.view==="generate")a.innerHTML=generateView();
- if(state.view==="block")a.innerHTML=blockView();
- if(state.view==="class")a.innerHTML=classView();
- if(state.view==="teacher")a.innerHTML=teacherView();
- bind();
-}
-function loginView(){return `<section class="panel" style="max-width:430px;margin:45px auto"><h2>School Timetable Login</h2><p class="hint">Offline administrator login for this device.</p><label>Username<input id="loginUser" autocomplete="username" value="admin"></label><br><label>Password<input id="loginPass" type="password" autocomplete="current-password" placeholder="Enter password"></label><div class="actions"><button class="primary" id="loginBtn">Login</button></div><div class="notice">First login: <b>admin</b> / <b>admin123</b>. This is a local app login, not an online account.</div><div id="loginMsg" class="hint"></div></section>`}
-function dashboardView(){let lessonCount=Object.keys(state.timetable).length;return panel("Dashboard",`<p>Welcome to <b>${esc(state.school.name||"My School")}</b>.</p><div class="grid">
-<div class="panel"><h2>${state.classes.length}</h2><div>Classes</div></div><div class="panel"><h2>${state.teachers.length}</h2><div>Teachers</div></div><div class="panel"><h2>${state.subjects.length}</h2><div>Subjects</div></div><div class="panel"><h2>${lessonCount}</h2><div>Generated lessons</div></div></div>
-<div class="actions"><button class="primary dash" data-view="setup">School Setup</button><button class="primary dash" data-view="subjects">Add Subjects</button><button class="primary dash" data-view="assignments">Assign Teachers</button><button class="primary dash" data-view="generate">Generate Timetable</button></div>`)}
-function setupView(){
- let classes=state.classes.map((x,i)=>`<div class="item"><span>${esc(x)}</span><button class="danger delClass" data-i="${i}">Delete</button></div>`).join("")||'<div class="empty">No classes yet.</div>';
- let teachers=state.teachers.map((x,i)=>`<div class="item"><span>${esc(x)}</span><button class="danger delTeacher" data-i="${i}">Delete</button></div>`).join("")||'<div class="empty">No teachers yet.</div>';
- return panel("School setup",`
- <div class="grid"><label>School name<input id="schoolName" value="${esc(state.school.name)}"></label><label>Academic year<input id="schoolYear" value="${esc(state.school.year)}"></label></div>
- <div class="actions"><button class="primary" id="saveSchool">Save school details</button></div>
- <div class="notice">Data is stored locally on this device. No internet connection is required after the app files are installed.</div>
- ${panel("Classes",`<div id="classList">${classes}</div><div class="grid"><label>New class<input id="newClass" placeholder="e.g. Grade 2A"></label></div><div class="actions"><button class="primary" id="addClass">Add class</button></div>`)}
- ${panel("Teachers",`<div id="teacherList">${teachers}</div><div class="grid"><label>New teacher<input id="newTeacher" placeholder="Teacher name"></label></div><div class="actions"><button class="primary" id="addTeacher">Add teacher</button></div>`)}
- `);
-}
-function subjectsView(){return panel("Subjects",`<p class="hint">Add your complete list of subjects first. Teachers, classes and weekly lesson requirements are assigned later under <b>Teacher Assignment</b>.</p>
-<div class="grid"><label>Subject name<input id="subName" placeholder="e.g. Mathematics"></label></div>
-<div class="actions"><button class="primary" id="addSubject">Add subject</button></div>
-<div id="subjectList">${state.subjects.map((s,i)=>`<div class="item"><div><b>${esc(s.name)}</b><div class="hint">${state.assignments.filter(a=>a.subject===s.name).length} assignment(s)</div></div><button class="danger delSubject" data-i="${i}">Delete</button></div>`).join("")||'<div class="empty">No subjects yet.</div>'}</div>`)}
-function assignmentsView(){return panel("Teacher Assignment",`<p class="hint">After entering all subjects, assign each subject to a class, teacher and number of lessons per week.</p>
-<div class="grid"><label>Subject<select id="asSubject"><option value="">Select subject</option>${state.subjects.map(s=>`<option>${esc(s.name)}</option>`).join("")}</select></label><label>Class<select id="asClass"><option value="">Select class</option>${state.classes.map(c=>`<option>${esc(c)}</option>`).join("")}</select></label><label>Teacher<select id="asTeacher"><option value="">Select teacher</option>${state.teachers.map(t=>`<option>${esc(t)}</option>`).join("")}</select></label><label>Lessons per week<input id="asLessons" type="number" min="1" max="20" value="5"></label></div>
-<div class="actions"><button class="primary" id="addAssignment">Save assignment</button></div>
-<div>${state.assignments.map((a,i)=>`<div class="item"><div><b>${esc(a.subject)}</b> — ${esc(a.class)}<div class="hint">Teacher: ${esc(a.teacher)} · ${a.lessons} lesson(s)/week</div></div><button class="danger delAssignment" data-i="${i}">Delete</button></div>`).join("")||'<div class="empty">No teacher assignments yet.</div>'}</div>`)}
-function periodsView(){return panel("Periods and breaks",`<p class="hint">Breaks are not scheduled as lessons. Edit names and times, or add another period.</p>
-<div id="periodList">${state.periods.map((p,i)=>`<div class="item"><div><b>${esc(p.name)}</b> <span class="badge">${p.break?"Break":"Lesson"}</span><div class="hint">${esc(p.time)}</div></div><button class="danger delPeriod" data-i="${i}">Delete</button></div>`).join("")}</div>
-<div class="grid"><label>Name<input id="periodName" placeholder="Period 9"></label><label>Time<input id="periodTime" placeholder="2:50 - 3:30"></label><label style="display:flex;align-items:end;gap:7px"><input id="periodBreak" type="checkbox"> Mark as break</label></div>
-<div class="actions"><button class="primary" id="addPeriod">Add period</button></div>`) }
-function generateView(){let count=Object.keys(state.timetable).length;return panel("Automatic timetable generator",`
-<p>Generation uses a local constraint-based scheduler. It prevents a class or teacher from being assigned two lessons at the same time and spreads repeated lessons across the week where possible.</p>
-<div class="actions"><button class="primary" id="generateBtn">Generate timetable</button><button class="secondary" id="clearTimetable">Clear timetable</button></div>
-<div id="genResult">${count?`<div class="notice">${count} lesson slots are currently stored. Regenerating will replace them.</div>`:'<div class="empty">No timetable generated yet.</div>'}</div>`) }
-function slots(){let out=[];for(const d of days)for(let p=0;p<state.periods.length;p++)if(!state.periods[p].break)out.push({d,p});return out}
-function generate(){
- state.timetable={};let occupiedTeacher={},occupiedClass={},used={};let warnings=[];
- const jobs=[];
- state.assignments.forEach(a=>{for(let n=0;n<Math.max(0,+a.lessons||0);n++)jobs.push({subject:a.subject,teacher:a.teacher,class:a.class,key:a.subject+"|"+a.class})});
- const firstLesson=state.periods.findIndex(p=>!p.break);
- const lunchIndex=state.periods.findIndex(p=>p.break&&/lunch/i.test(p.name));
- const ppiJobs=jobs.filter(j=>j.subject.trim().toLowerCase()==="ppi");
- const otherJobs=jobs.filter(j=>j.subject.trim().toLowerCase()!=="ppi");
- // Shuffle subjects before scheduling to avoid the same subjects repeatedly occupying the same patterns.
- const shuffle=a=>{for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
- shuffle(otherJobs);
- // Schedule PPI first on Friday's first lesson.
- for(const job of ppiJobs){
-  if(firstLesson<0){warnings.push("No lesson period is available for PPI.");continue}
-  const d="Friday",p=firstLesson;
-  if(occupiedClass[d+"|"+p+"|"+job.class]||occupiedTeacher[d+"|"+p+"|"+job.teacher]){warnings.push("PPI could not be placed first on Friday for "+job.class+".");continue}
-  const id=d+"|"+p+"|"+job.class;
-  state.timetable[id]={day:d,period:p,class:job.class,subject:job.subject,teacher:job.teacher};
-  occupiedClass[d+"|"+p+"|"+job.class]=1;occupiedTeacher[d+"|"+p+"|"+job.teacher]=1;used[job.key+"|"+d]=(used[job.key+"|"+d]||0)+1;
- }
- const all=slots();
- for(const job of otherJobs){
-  if(!job.teacher){warnings.push("Unassigned teacher for "+job.subject+" / "+job.class);continue}
-  const lower=job.subject.trim().toLowerCase();
-  let candidates=all.filter(x=>{
-   if(occupiedClass[x.d+"|"+x.p+"|"+job.class]||occupiedTeacher[x.d+"|"+x.p+"|"+job.teacher])return false;
-   // Mathematics and English must not be scheduled after lunch.
-   if((lower==="mathematics"||lower==="math"||lower==="english")&&lunchIndex>=0&&x.p>lunchIndex)return false;
-   // Keep PPI first on Friday by reserving that slot for PPI when PPI exists for this class.
-   if(x.d==="Friday"&&x.p===firstLesson&&state.assignments.some(a=>a.class===job.class&&a.subject.trim().toLowerCase()==="ppi"))return false;
-   return true;
-  });
-  // Prefer days with fewer copies of this subject, then add randomness to break monotony.
-  shuffle(candidates);
-  candidates.sort((a,b)=>(used[job.key+"|"+a.d]||0)-(used[job.key+"|"+b.d]||0));
-  let pick=candidates[0];
-  if(!pick){warnings.push("Could not place "+job.subject+" for "+job.class+"; adjust lessons, periods or rules.");continue}
-  let id=pick.d+"|"+pick.p+"|"+job.class;
-  state.timetable[id]={day:pick.d,period:pick.p,class:job.class,subject:job.subject,teacher:job.teacher};
-  occupiedClass[pick.d+"|"+pick.p+"|"+job.class]=1;occupiedTeacher[pick.d+"|"+pick.p+"|"+job.teacher]=1;used[job.key+"|"+pick.d]=(used[job.key+"|"+pick.d]||0)+1;
- }
- save();state.view="generate";render();
- document.getElementById("genResult").innerHTML=`<div class="notice">Generated ${Object.keys(state.timetable).length} lesson slots with PPI, Mathematics/English and subject-shuffling rules applied.${warnings.length?" "+warnings.length+" item(s) need attention.":""}</div>${warnings.length?`<div class="notice">${warnings.map(esc).join("<br>")}</div>`:""}`;
-}
-function cell(day,p,cls){let x=state.timetable[day+"|"+p+"|"+cls];return x?`<b>${esc(x.subject)}</b><br><span class="hint">${esc(x.teacher)}</span>`:"—"}
-function blockView(){return panel("Block timetable",`<div class="print-title">${esc(state.school.name||"School")} - Block Timetable</div><div class="print-subtitle">Academic Year ${esc(state.school.year||"")}</div><div class="actions no-print"><button class="primary" id="print">Print</button></div><div class="scroll"><table><thead><tr><th>Day / Time</th>${state.classes.map(c=>`<th>${esc(c)}</th>`).join("")}</tr></thead><tbody>${days.map(d=>state.periods.map((p,i)=>p.break?`<tr><th>${d}<br>${esc(p.name)}<br>${esc(p.time)}</th><td colspan="${Math.max(1,state.classes.length)}"><b>${esc(p.name)}</b></td></tr>`:`<tr><th>${d}<br>${esc(p.name)}<br>${esc(p.time)}</th>${state.classes.map(c=>`<td>${cell(d,i,c)}</td>`).join("")}</tr>`).join("")).join("")}</tbody></table></div>`) }
-function classView(){let c=state.selectedClass||state.classes[0]||"";return panel("Class timetable",`<div class="print-title">${esc(state.school.name||"School")} - Class Timetable</div><div class="print-subtitle">${esc(c)} · Academic Year ${esc(state.school.year||"")}</div><div class="grid no-print"><label>Select class<select id="classSelect">${state.classes.map(x=>`<option ${x===c?"selected":""}>${esc(x)}</option>`).join("")}</select></label></div><div class="actions no-print"><button class="primary" id="print">Print</button></div><div class="scroll"><table><thead><tr><th>Period</th>${days.map(d=>`<th>${d}</th>`).join("")}</tr></thead><tbody>${state.periods.map((p,i)=>`<tr><th>${esc(p.name)}<br>${esc(p.time)}</th>${days.map(d=>`<td>${p.break?`<b>${esc(p.name)}</b>`:cell(d,i,c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`) }
-function teacherView(){let t=state.selectedTeacher||state.teachers[0]||"";return panel("Individual teacher timetable",`<div class="print-title">${esc(state.school.name||"School")} - Teacher Timetable</div><div class="print-subtitle">${esc(t)} · Academic Year ${esc(state.school.year||"")}</div><div class="grid no-print"><label>Select teacher<select id="teacherSelect">${state.teachers.map(x=>`<option ${x===t?"selected":""}>${esc(x)}</option>`).join("")}</select></label></div><div class="actions no-print"><button class="primary" id="print">Print</button></div><div class="scroll"><table><thead><tr><th>Period</th>${days.map(d=>`<th>${d}</th>`).join("")}</tr></thead><tbody>${state.periods.map((p,i)=>`<tr><th>${esc(p.name)}<br>${esc(p.time)}</th>${days.map(d=>{let x=Object.values(state.timetable).find(v=>v.day===d&&v.period===i&&v.teacher===t);return `<td>${p.break?`<b>${esc(p.name)}</b>`:x?`<b>${esc(x.subject)}</b><br><span class="hint">${esc(x.class)}</span>`:"—"}</td>`}).join("")}</tr>`).join("")}</tbody></table></div>`) }
-function bind(){
- const q=id=>document.getElementById(id);
- q("loginBtn")?.addEventListener("click",()=>{if(q("loginUser").value.trim()==="admin"&&q("loginPass").value==="admin123"){state.loggedIn=true;state.view="dashboard";save();render()}else q("loginMsg").textContent="Incorrect username or password."});
- document.querySelectorAll(".dash").forEach(b=>b.onclick=()=>{state.view=b.dataset.view;render()});
- q("saveSchool")?.addEventListener("click",()=>{state.school.name=q("schoolName").value.trim()||"My School";state.school.year=q("schoolYear").value.trim();save();render()});
- q("addClass")?.addEventListener("click",()=>{let v=q("newClass").value.trim();if(v&&!state.classes.includes(v)){state.classes.push(v);save();render()}});
- q("addTeacher")?.addEventListener("click",()=>{let v=q("newTeacher").value.trim();if(v&&!state.teachers.includes(v)){state.teachers.push(v);save();render()}});
- document.querySelectorAll(".delClass").forEach(b=>b.onclick=()=>{let old=state.classes[+b.dataset.i];state.classes.splice(+b.dataset.i,1);state.assignments=state.assignments.filter(a=>a.class!==old);save();render()});
- document.querySelectorAll(".delTeacher").forEach(b=>b.onclick=()=>{let old=state.teachers[+b.dataset.i];state.teachers.splice(+b.dataset.i,1);state.assignments=state.assignments.filter(a=>a.teacher!==old);save();render()});
- q("addSubject")?.addEventListener("click",()=>{let name=q("subName").value.trim();if(name&&!state.subjects.some(s=>s.name.toLowerCase()===name.toLowerCase())){state.subjects.push({name});save();render()}else alert("Enter a new subject name.")});
- document.querySelectorAll(".delSubject").forEach(b=>b.onclick=()=>{let old=state.subjects[+b.dataset.i].name;state.subjects.splice(+b.dataset.i,1);state.assignments=state.assignments.filter(a=>a.subject!==old);save();render()});
- q("addAssignment")?.addEventListener("click",()=>{let subject=q("asSubject").value,cl=q("asClass").value,teacher=q("asTeacher").value,lessons=Math.max(1,Math.min(20,+q("asLessons").value||1));if(subject&&cl&&teacher){state.assignments.push({subject,class:cl,teacher,lessons});save();render()}else alert("Select a subject, class and teacher.")});
- document.querySelectorAll(".delAssignment").forEach(b=>b.onclick=()=>{state.assignments.splice(+b.dataset.i,1);save();render()});
- q("addPeriod")?.addEventListener("click",()=>{let name=q("periodName").value.trim(),time=q("periodTime").value.trim();if(name&&time){state.periods.push({name,time,break:q("periodBreak").checked});save();render()}});
- document.querySelectorAll(".delPeriod").forEach(b=>b.onclick=()=>{if(state.periods.length>1){state.periods.splice(+b.dataset.i,1);save();render()}});
- q("generateBtn")?.addEventListener("click",generate);q("clearTimetable")?.addEventListener("click",()=>{state.timetable={};save();render()});
- q("classSelect")?.addEventListener("change",e=>{state.selectedClass=e.target.value;render()});q("teacherSelect")?.addEventListener("change",e=>{state.selectedTeacher=e.target.value;render()});q("print")?.addEventListener("click",()=>window.print());
-}
-render();
-</script>
-</body>
-</html>
+const K='timetabler_v4',L='timetabler_login_v4',D=['Monday','Tuesday','Wednesday','Thursday','Friday'];let S=load();function fresh(){return{school:{name:'My School',year:'2026'},classes:[],teachers:[],subjects:[],assignments:[],periods:[['P1','8:00-8:40',0],['P2','8:40-9:20',0],['P3','9:20-10:00',0],['Break','10:00-10:20',1],['P4','10:20-11:00',0],['P5','11:00-11:40',0],['P6','11:40-12:20',0],['Lunch','12:20-1:20',1],['P7','1:20-2:00',0],['P8','2:00-2:40',0]],tt:{},warnings:[]}}function load(){try{return JSON.parse(localStorage.getItem(K))||fresh()}catch(e){return fresh()}}function save(){localStorage.setItem(K,JSON.stringify(S))}function esc(x){return String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}function n(x){return String(x||'').trim().toLowerCase()}function isPPI(x){return n(x)==='ppi'}function isME(x){return ['math','mathematics','english'].includes(n(x))}function slots(){return S.periods.map((p,i)=>({p,i})).filter(x=>!x.p[2])}function lunch(){return S.periods.findIndex(p=>p[2]&&n(p[0]).includes('lunch'))}function key(d,p,c){return d+'|'+p+'|'+c}
+const views=[['dash','Dashboard'],['setup','Setup'],['subjects','Subjects'],['assign','Teacher Assignments'],['periods','Periods & Breaks'],['gen','Generate'],['block','Block Timetable'],['class','Class Timetable'],['teacher','Teacher Timetable']];function buildNav(){nav.innerHTML=views.map(v=>`<button data-v="${v[0]}">${v[1]}</button>`).join('');document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>show(b.dataset.v))}function show(v){document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.v===v));main.innerHTML=({dash,setup,subjects,assign,periods,gen,block,class:cl,teacher}[v])();bind(v);school.textContent=S.school.name||'School Timetable Generator';year.textContent=S.school.year?'Academic Year: '+S.school.year:''}
+function dash(){return `<section class="panel"><h2>Dashboard</h2><p>Set up your school, then generate the timetable automatically.</p><div class="cards"><div class="stat"><b>${S.classes.length}</b>Classes</div><div class="stat"><b>${S.teachers.length}</b>Teachers</div><div class="stat"><b>${S.subjects.length}</b>Subjects</div><div class="stat"><b>${S.assignments.length}</b>Assignments</div></div></section><section class="panel"><h3>Quick Actions</h3><div class="actions"><button class="btn" onclick="show('setup')">School Setup</button><button class="btn" onclick="show('subjects')">Subjects</button><button class="btn" onclick="show('assign')">Teacher Assignments</button><button class="btn blue" onclick="show('gen')">Generate Timetable</button></div></section><section class="panel"><h3>Automatic rules</h3><ul><li>PPI first lesson Friday where possible.</li><li>Mathematics and English before lunch.</li><li>No class or teacher clashes.</li><li>Subjects distributed to reduce repetition.</li></ul></section>`}
+function setup(){return `<section class="panel"><h2>School Setup</h2><div class="grid"><div class="field"><label>School name</label><input id="sn" value="${esc(S.school.name)}"></div><div class="field"><label>Academic year</label><input id="sy" value="${esc(S.school.year)}"></div></div><button class="btn" id="ss">Save</button></section><section class="panel"><h3>Classes</h3><div class="toolbar"><input id="nc" placeholder="e.g. Grade 4A"><button class="btn" id="ac">Add Class</button></div>${list(S.classes,'class')}</section><section class="panel"><h3>Teachers</h3><div class="toolbar"><input id="nt" placeholder="Teacher name"><button class="btn" id="at">Add Teacher</button></div>${list(S.teachers,'teacher')}</section>`}function list(a,t){return a.length?`<div class="scroll"><table><tr><th>${t}</th><th>Action</th></tr>${a.map((x,i)=>`<tr><td>${esc(x)}</td><td><button class="btn red small" onclick="removeItem('${t}',${i})">Delete</button></td></tr>`).join('')}</table></div>`:`<p>No ${t}s added.</p>`}
+function subjects(){return `<section class="panel"><h2>Subjects</h2><div class="toolbar"><input id="ns" placeholder="e.g. Mathematics"><button class="btn" id="addsub">Add Subject</button></div>${S.subjects.length?`<div class="scroll"><table><tr><th>Subject</th><th>Action</th></tr>${S.subjects.map((x,i)=>`<tr><td>${esc(x)}</td><td><button class="btn red small" onclick="removeSubject(${i})">Delete</button></td></tr>`).join('')}</table></div>`:'<p>No subjects added.</p>'}</section>`}
+function assign(){return `<section class="panel"><h2>Teacher Assignments</h2><div class="grid3"><div class="field"><label>Subject</label><select id="as">${S.subjects.map(x=>`<option>${esc(x)}</option>`).join('')}</select></div><div class="field"><label>Teacher</label><select id="at2">${S.teachers.map(x=>`<option>${esc(x)}</option>`).join('')}</select></div><div class="field"><label>Class</label><select id="acl">${S.classes.map(x=>`<option>${esc(x)}</option>`).join('')}</select></div></div><div class="field" style="max-width:220px"><label>Lessons per week</label><input id="al" type="number" min="1" max="20" value="3"></div><button class="btn" id="adda">Add Assignment</button><div id="am"></div></section><section class="panel"><h3>Current Assignments</h3>${S.assignments.length?`<div class="scroll"><table><tr><th>Subject</th><th>Teacher</th><th>Class</th><th>Lessons</th><th>Action</th></tr>${S.assignments.map((a,i)=>`<tr><td>${esc(a.s)}</td><td>${esc(a.t)}</td><td>${esc(a.c)}</td><td>${a.l}</td><td><button class="btn red small" onclick="removeA(${i})">Delete</button></td></tr>`).join('')}</table></div>`:'<p>No assignments.</p>'}</section>`}
+function periods(){return `<section class="panel"><h2>Periods & Breaks</h2><div class="grid3"><div class="field"><label>Name</label><input id="pn" placeholder="P1"></div><div class="field"><label>Time</label><input id="pt" placeholder="8:00-8:40"></div><div class="field"><label>Type</label><select id="pb"><option value="0">Teaching</option><option value="1">Break</option></select></div></div><button class="btn" id="addp">Add</button><div class="scroll" style="margin-top:12px"><table><tr><th>#</th><th>Name</th><th>Time</th><th>Type</th><th>Action</th></tr>${S.periods.map((p,i)=>`<tr><td>${i+1}</td><td>${esc(p[0])}</td><td>${esc(p[1])}</td><td>${p[2]?'Break':'Teaching'}</td><td><button class="btn red small" onclick="removeP(${i})">Delete</button></td></tr>`).join('')}</table></div></section>`}
+function gen(){return `<section class="panel"><h2>Automatic Generation</h2><p>Existing generated lessons will be replaced.</p><button class="btn blue" id="generate">Generate Automatically</button><button class="btn light" id="clear">Clear</button><div id="result"></div></section>`}
+function title(t){return `<div class="print-title"><h2>${esc(S.school.name)}</h2><p>${esc(t)} • Academic Year ${esc(S.school.year)}</p></div>`}function hdr(){return `<thead><tr><th>Day</th>${S.periods.map(p=>`<th>${esc(p[0])}<br><small>${esc(p[1])}</small></th>`).join('')}</tr></thead>`}
+function block(){return `<section class="panel"><div class="toolbar no-print"><button class="btn blue" onclick="print()">Print Block Timetable</button></div>${title('Block Timetable')}<div class="scroll"><table class="timetable">${hdr()}<tbody>${D.map(d=>`<tr><td>${d}</td>${S.periods.map((p,i)=>p[2]?`<td class="break">${esc(p[0])}</td>`:`<td>${S.classes.map(c=>S.tt[key(d,i,c)]).filter(Boolean).map(a=>`<div class="subject">${esc(a.s)}</div><div class="meta">${esc(a.c)} • ${esc(a.t)}</div>`).join('')||'<span class="empty">—</span>'}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>`}
+function classTable(c){return `<div class="scroll"><table class="timetable">${hdr()}<tbody>${D.map(d=>`<tr><td>${esc(d)}</td>${S.periods.map((p,i)=>p[2]?`<td class="break">${esc(p[0])}</td>`:`<td>${S.tt[key(d,i,c)]?`<div class="subject">${esc(S.tt[key(d,i,c)].s)}</div><div class="meta">${esc(S.tt[key(d,i,c)].t)}</div>`:'<span class="empty">—</span>'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`}function cl(){let c=S.classes[0]||'';return `<section class="panel"><div class="toolbar no-print"><b>Class:</b><select id="cs">${S.classes.map(x=>`<option>${esc(x)}</option>`).join('')}</select><button class="btn blue" onclick="print()">Print Class Timetable</button></div>${title('Class Timetable')}<div id="ct">${classTable(c)}</div></section>`}
+function teacherTable(t){return `<div class="scroll"><table class="timetable">${hdr()}<tbody>${D.map(d=>`<tr><td>${d}</td>${S.periods.map((p,i)=>p[2]?`<td class="break">${esc(p[0])}</td>`:`<td>${S.classes.map(c=>S.tt[key(d,i,c)]).filter(a=>a&&a.t===t).map(a=>`<div class="subject">${esc(a.s)}</div><div class="meta">${esc(a.c)}</div>`).join('')||'<span class="empty">—</span>'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`}function teacher(){let t=S.teachers[0]||'';return `<section class="panel"><div class="toolbar no-print"><b>Teacher:</b><select id="ts">${S.teachers.map(x=>`<option>${esc(x)}</option>`).join('')}</select><button class="btn blue" onclick="print()">Print Teacher Timetable</button></div>${title('Individual Teacher Timetable')}<div id="tt">${teacherTable(t)}</div></section>`}
+function bind(v){if(v==='setup'){ss.onclick=()=>{S.school.name=sn.value.trim()||'My School';S.school.year=sy.value.trim();save();show('setup')};ac.onclick=()=>addSimple('class');at.onclick=()=>addSimple('teacher')}if(v==='subjects')addsub.onclick=()=>{let x=ns.value.trim();if(x&&!S.subjects.some(a=>n(a)===n(x))){S.subjects.push(x);save();show('subjects')}}if(v==='assign')adda.onclick=addAssignment;if(v==='periods')addp.onclick=()=>{if(!pn.value.trim())return;S.periods.push([pn.value.trim(),pt.value.trim(),+pb.value]);S.tt={};save();show('periods')}if(v==='gen'){generate.onclick=generateNow;clear.onclick=()=>{S.tt={};S.warnings=[];save();result.innerHTML='<div class="notice success">Timetable cleared.</div>'}}if(v==='class')cs.onchange=()=>ct.innerHTML=classTable(cs.value);if(v==='teacher')ts.onchange=()=>tt.innerHTML=teacherTable(ts.value)}
+function addSimple(t){let id=t==='class'?'nc':'nt',x=document.getElementById(id).value.trim(),a=t==='class'?S.classes:S.teachers;if(x&&!a.some(y=>n(y)===n(x))){a.push(x);save();show('setup')}}function removeItem(t,i){let a=t==='class'?S.classes:S.teachers,x=a[i];a.splice(i,1);S.assignments=S.assignments.filter(q=>q.c!==x&&q.t!==x);S.tt={};save();show('setup')}function removeSubject(i){let x=S.subjects[i];S.subjects.splice(i,1);S.assignments=S.assignments.filter(a=>a.s!==x);S.tt={};save();show('subjects')}function addAssignment(){let a={s:as.value,t:at2.value,c:acl.value,l:+al.value};if(!a.s||!a.t||!a.c||!a.l){am.innerHTML='<div class="notice">Complete all fields.</div>';return}if(S.assignments.some(x=>n(x.s)===n(a.s)&&n(x.c)===n(a.c))){am.innerHTML='<div class="notice">That subject is already assigned to this class.</div>';return}S.assignments.push(a);S.tt={};save();show('assign')}function removeA(i){S.assignments.splice(i,1);S.tt={};save();show('assign')}function removeP(i){if(S.periods.length>1){S.periods.splice(i,1);S.tt={};save();show('periods')}}function shuffle(a){for(let i=a.length-1;i;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function generateNow(){S.tt={};S.warnings=[];let ss=slots(),li=lunch(),oc={},ot={},jobs=[];S.assignments.forEach(a=>{for(let i=0;i<a.l;i++)jobs.push({...a})});for(let c of S.classes){let p=S.assignments.find(a=>a.c===c&&isPPI(a.s));if(p){let s=ss[0],k=key('Friday',s.i,c),tk='Friday|'+s.i+'|'+p.t;if(!oc[k]&&!ot[tk]){S.tt[k]={s:p.s,t:p.t,c};oc[k]=1;ot[tk]=1;let z=jobs.findIndex(j=>j.s===p.s&&j.t===p.t&&j.c===c);if(z>=0)jobs.splice(z,1)}else S.warnings.push('PPI could not be placed first on Friday for '+c)}}shuffle(jobs);for(let j of jobs){let cand=[];for(let d of D)for(let s of ss){if(isME(j.s)&&li>=0&&s.i>li)continue;let k=key(d,s.i,j.c),tk=d+'|'+s.i+'|'+j.t;if(oc[k]||ot[tk])continue;let score=Math.random()*30,pr=S.tt[key(d,s.i-1,j.c)],nx=S.tt[key(d,s.i+1,j.c)],same=Object.keys(S.tt).some(q=>q.startsWith(d+'|')&&S.tt[q].c===j.c&&S.tt[q].s===j.s);if(same)score+=180;if(pr&&pr.s===j.s)score+=500;if(nx&&nx.s===j.s)score+=500;cand.push({d,s,score})}if(!cand.length){S.warnings.push('Could not place '+j.s+' for '+j.c+' ('+j.t+').');continue}cand.sort((a,b)=>a.score-b.score);let q=cand[0],k=key(q.d,q.s.i,j.c);S.tt[k]={s:j.s,t:j.t,c:j.c};oc[k]=1;ot[q.d+'|'+q.s.i+'|'+j.t]=1}save();result.innerHTML='<div class="notice success">Timetable generated: '+Object.keys(S.tt).length+' lessons placed.</div>'+(S.warnings.length?'<div class="notice"><b>Warnings:</b><ul>'+S.warnings.map(esc).map(x=>'<li>'+x+'</li>').join('')+'</ul></div>':'<div class="notice success">No unplaced lessons reported.</div>')}
+function print(){window.print()}lf.onsubmit=e=>{e.preventDefault();if(u.value==='admin'&&pw.value==='admin123'){localStorage.setItem(L,'1');start()}else{lm.textContent='Incorrect username or password.';lm.classList.remove('hide')}};logout.onclick=()=>{localStorage.removeItem(L);location.reload()};function start(){login.classList.add('hide');app.classList.remove('hide');buildNav();show('dash')}if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});if(localStorage.getItem(L)==='1')start();
+</script></body></html>
